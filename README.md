@@ -8,7 +8,11 @@ PaperShelf is a Retrieval-Augmented Generation (RAG) application that stores emb
 - **Embedding Generation**: Generate embeddings for paper content using sentence transformers
 - **Vector Database**: Store and retrieve embeddings efficiently using ChromaDB
 - **RAG Querying**: Query papers using natural language and get AI-generated responses
+- **Query History**: Track and review previous queries and responses with session management
+- **PDF Export**: Export chat history to PDF for sharing or archiving
+- **Multiple File Upload**: Upload multiple PDF files at once for batch processing
 - **API Interface**: Interact with the system through a RESTful API
+- **Web Interface**: User-friendly web UI for uploading papers and querying the system
 
 ## Architecture
 
@@ -19,14 +23,20 @@ papershelf/
 ├── ingest/            # PDF processing and embedding generation
 │   ├── pdf_processor.py
 │   └── embedding_generator.py
-├── db/                # Vector database operations
-│   └── vector_store.py
+├── db/                # Database operations
+│   ├── vector_store.py
+│   └── chat_history.py
 ├── query/             # RAG querying using LangGraph
 │   └── rag_engine.py
 ├── api/               # FastAPI endpoints
 │   └── app.py
 ├── utils/             # Utility functions and configuration
-│   └── config.py
+│   ├── config.py
+│   └── pdf_generator.py
+├── static/            # Web interface files
+│   ├── index.html
+│   ├── upload.html
+│   └── query.html
 └── main.py            # Application entry point
 ```
 
@@ -98,11 +108,29 @@ papershelf/
 
 ### Web Interface
 
-PaperShelf provides a simple web interface for uploading PDF files. Once the server is running, you can access the web interface by navigating to http://localhost:8000 in your web browser. The interface allows you to:
+PaperShelf provides a user-friendly web interface for interacting with the system. Once the server is running, you can access the web interface by navigating to http://localhost:8000 in your web browser.
 
-1. Select a PDF file from your computer
-2. Upload the file to the PaperShelf system
-3. View the processing results, including the document ID, title, author, and page count
+#### Home Page
+
+The home page provides an overview of the system and links to the upload and query pages.
+
+#### Upload Page
+
+The upload page allows you to:
+
+1. Select one or multiple PDF files from your computer
+2. Upload the files to the PaperShelf system
+3. View the processing results for each file, including document IDs, titles, authors, and page counts
+
+#### Query Page
+
+The query page allows you to:
+
+1. Ask questions about your uploaded papers
+2. View AI-generated answers based on the content of your papers
+3. See the source documents used to generate the answers
+4. Review your query history from the current session
+5. Clear your query history if desired
 
 ### Running the API Server
 
@@ -138,7 +166,7 @@ The script will automatically check for a `.env` file and create one from `.env.
 
 ### API Endpoints
 
-> **Note:** A web interface for uploading papers is available at http://localhost:8000
+> **Note:** A web interface for interacting with the system is available at http://localhost:8000
 
 #### Upload a Paper
 
@@ -160,6 +188,24 @@ curl -X POST -H "Content-Type: application/json" \
 curl http://localhost:8000/stats
 ```
 
+#### Get All Chat Sessions
+
+```bash
+curl http://localhost:8000/sessions
+```
+
+#### Get Chat History for a Session
+
+```bash
+curl http://localhost:8000/sessions/{session_id}
+```
+
+#### Export Chat History to PDF
+
+```bash
+curl -o chat_history.pdf http://localhost:8000/sessions/{session_id}/export-pdf
+```
+
 ### Python Client Example
 
 ```python
@@ -171,13 +217,37 @@ with open('path/to/paper.pdf', 'rb') as f:
     response = requests.post('http://localhost:8000/upload', files={'file': f})
     print(json.dumps(response.json(), indent=2))
 
-# Query the paper
+# Upload multiple papers
+papers = ['paper1.pdf', 'paper2.pdf', 'paper3.pdf']
+for paper in papers:
+    with open(paper, 'rb') as f:
+        response = requests.post('http://localhost:8000/upload', files={'file': f})
+        print(f"Uploaded {paper}: {response.json()['id']}")
+
+# Query the papers
 query = {
     "query": "What methodology was used in this paper?",
     "top_k": 3
 }
 response = requests.post('http://localhost:8000/query', json=query)
 print(json.dumps(response.json(), indent=2))
+
+# Get all chat sessions
+response = requests.get('http://localhost:8000/sessions')
+sessions = response.json()['sessions']
+print(f"Found {len(sessions)} chat sessions")
+
+# Get chat history for a specific session
+session_id = sessions[0]['session_id']  # Get the first session
+response = requests.get(f'http://localhost:8000/sessions/{session_id}')
+history = response.json()
+print(f"Session {session_id} has {len(history['history'])} queries")
+
+# Export chat history to PDF
+with open('chat_history.pdf', 'wb') as f:
+    response = requests.get(f'http://localhost:8000/sessions/{session_id}/export-pdf')
+    f.write(response.content)
+print("Chat history exported to chat_history.pdf")
 ```
 
 ## Docker Usage
@@ -239,12 +309,14 @@ The following variables are available:
 | API_HOST | Host to bind the API server | 0.0.0.0 |
 | API_PORT | Port for the API server | 8000 |
 | DB_PERSIST_DIRECTORY | Directory for the vector database | /app/data/chroma_db |
+| CHAT_HISTORY_DB_PATH | Path to the SQLite database for chat history | ./chat_history.db |
 | EMBEDDING_MODEL | Model for generating embeddings | all-MiniLM-L6-v2 |
 | LLM_MODEL | LLM model for RAG | gpt-3.5-turbo |
 | LLM_TEMPERATURE | Temperature for the LLM | 0.0 |
 | LLM_MAX_TOKENS | Maximum tokens for LLM responses | 500 |
 | CHUNK_SIZE | Size of text chunks for processing | 1000 |
 | CHUNK_OVERLAP | Overlap between consecutive chunks | 200 |
+| PDF_EXPORT_DIR | Directory for exported PDF files | ./pdf_exports |
 | OPENAI_API_KEY | OpenAI API key for RAG functionality | - |
 
 ### Data Persistence
