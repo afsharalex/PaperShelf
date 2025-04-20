@@ -124,7 +124,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Upload Academic Paper (PDF)</h1>
+        <h1>Upload Academic Papers (PDF)</h1>
 
         <div class="nav-tabs">
             <a href="/" class="nav-tab">Home</a>
@@ -132,19 +132,19 @@
             <a href="/query-page" class="nav-tab">Query Papers</a>
         </div>
 
-        <p>Upload a PDF file to process and store in the PaperShelf system. The paper will be processed, text extracted, and embeddings generated for later querying.</p>
+        <p>Upload one or more PDF files to process and store in the PaperShelf system. Each paper will be processed, text extracted, and embeddings generated for later querying.</p>
 
         <form id="uploadForm" class="upload-form">
             <div class="form-group">
-                <label for="pdfFile">Select PDF File:</label>
-                <input type="file" id="pdfFile" name="file" accept=".pdf" class="file-input" required>
+                <label for="pdfFile">Select PDF File(s):</label>
+                <input type="file" id="pdfFile" name="file" accept=".pdf" class="file-input" multiple required>
             </div>
-            <button type="submit" class="submit-btn">Upload Paper</button>
+            <button type="submit" class="submit-btn">Upload Papers</button>
         </form>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Processing your paper... This may take a moment.</p>
+            <p>Processing your papers... This may take a moment.</p>
         </div>
 
         <div id="result" class="result"></div>
@@ -155,55 +155,116 @@
             e.preventDefault();
 
             const fileInput = document.getElementById('pdfFile');
-            const file = fileInput.files[0];
+            const files = fileInput.files;
 
-            if (!file) {
-                showResult('Please select a PDF file.', false);
+            if (files.length === 0) {
+                showResult('Please select at least one PDF file.', false);
                 return;
             }
 
-            if (!file.name.toLowerCase().endsWith('.pdf')) {
-                showResult('Only PDF files are accepted.', false);
-                return;
+            // Validate all files are PDFs
+            for (let i = 0; i < files.length; i++) {
+                if (!files[i].name.toLowerCase().endsWith('.pdf')) {
+                    showResult('Only PDF files are accepted.', false);
+                    return;
+                }
             }
-
-            const formData = new FormData();
-            formData.append('file', file);
 
             // Show loading spinner
             document.getElementById('loading').style.display = 'block';
             document.getElementById('result').style.display = 'none';
 
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
+            const results = [];
+            let hasErrors = false;
 
-                const data = await response.json();
+            // Process each file
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const formData = new FormData();
+                formData.append('file', file);
 
-                if (response.ok) {
-                    showResult(`
-                        <h3>Paper Uploaded Successfully!</h3>
-                        <p><strong>ID:</strong> ${data.id}</p>
-                        <p><strong>Title:</strong> ${data.title}</p>
-                        <p><strong>Author:</strong> ${data.author || 'Unknown'}</p>
-                        <p><strong>Pages:</strong> ${data.page_count || 'Unknown'}</p>
-                        <p>The paper has been processed and is now available for querying.</p>
-                    `, true);
-                } else {
-                    showResult(`Error: ${data.detail || 'Unknown error occurred'}`, false);
+                try {
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        results.push({
+                            success: true,
+                            filename: file.name,
+                            data: data
+                        });
+                    } else {
+                        hasErrors = true;
+                        results.push({
+                            success: false,
+                            filename: file.name,
+                            error: data.detail || 'Unknown error occurred'
+                        });
+                    }
+                } catch (error) {
+                    hasErrors = true;
+                    results.push({
+                        success: false,
+                        filename: file.name,
+                        error: error.message
+                    });
                 }
-            } catch (error) {
-                showResult(`Error: ${error.message}`, false);
-            } finally {
-                // Hide loading spinner
-                document.getElementById('loading').style.display = 'none';
-
-                // Reset form
-                fileInput.value = '';
             }
+
+            // Display results
+            displayResults(results, hasErrors);
+
+            // Hide loading spinner
+            document.getElementById('loading').style.display = 'none';
+
+            // Reset form
+            fileInput.value = '';
         });
+
+        function displayResults(results, hasErrors) {
+            let html = '';
+
+            if (results.length === 1) {
+                // Single file result
+                const result = results[0];
+                if (result.success) {
+                    html = `
+                        <h3>Paper Uploaded Successfully!</h3>
+                        <p><strong>ID:</strong> ${result.data.id}</p>
+                        <p><strong>Title:</strong> ${result.data.title}</p>
+                        <p><strong>Author:</strong> ${result.data.author || 'Unknown'}</p>
+                        <p><strong>Pages:</strong> ${result.data.page_count || 'Unknown'}</p>
+                        <p>The paper has been processed and is now available for querying.</p>
+                    `;
+                } else {
+                    html = `<h3>Error Uploading Paper</h3><p>Error: ${result.error}</p>`;
+                }
+            } else {
+                // Multiple files results
+                html = `<h3>Upload Results (${results.length} files)</h3>`;
+
+                // Count successes
+                const successCount = results.filter(r => r.success).length;
+                html += `<p>${successCount} of ${results.length} files uploaded successfully.</p>`;
+
+                // List of results
+                html += '<ul>';
+                for (const result of results) {
+                    if (result.success) {
+                        html += `<li>✅ <strong>${result.filename}</strong>: Uploaded successfully (ID: ${result.data.id})</li>`;
+                    } else {
+                        html += `<li>❌ <strong>${result.filename}</strong>: ${result.error}</li>`;
+                    }
+                }
+                html += '</ul>';
+            }
+
+            showResult(html, !hasErrors);
+        }
 
         function showResult(message, isSuccess) {
             const resultDiv = document.getElementById('result');

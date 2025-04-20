@@ -44,6 +44,7 @@ class DocumentResponse(BaseModel):
     title: str
     author: Optional[str] = None
     page_count: Optional[int] = None
+    original_filename: Optional[str] = None
     status: str
 
 
@@ -113,14 +114,21 @@ async def upload_paper(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
-    # Save the uploaded file temporarily
-    temp_path = f"temp_{uuid.uuid4()}.pdf"
+    # Get original filename and sanitize it
+    original_filename = file.filename
+    # Ensure we have a safe filename by removing any path components
+    safe_filename = os.path.basename(original_filename)
+    # Create a unique filename to avoid conflicts
+    unique_id = str(uuid.uuid4())[:8]  # Use first 8 chars of UUID for brevity
+    temp_path = f"{unique_id}_{safe_filename}"
     try:
         with open(temp_path, "wb") as f:
             f.write(await file.read())
 
         # Process the PDF
         metadata = pdf_processor.extract_metadata(temp_path)
+        # Add original filename to metadata
+        metadata["original_filename"] = original_filename
         chunks = pdf_processor.process_pdf(temp_path)
 
         # Generate embeddings
@@ -152,6 +160,7 @@ async def upload_paper(file: UploadFile = File(...)):
             "title": metadata.get("title", "Unknown"),
             "author": metadata.get("author", "Unknown"),
             "page_count": metadata.get("page_count", 0),
+            "original_filename": original_filename,
             "status": "success"
         }
 
