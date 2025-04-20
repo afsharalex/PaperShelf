@@ -17,34 +17,38 @@ load_dotenv()
 
 class Config:
     """Configuration class for PaperShelf."""
-    
+
     # API settings
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
-    
+
     # Database settings
     DB_PERSIST_DIRECTORY = os.getenv("DB_PERSIST_DIRECTORY", "./chroma_db")
-    
+    CHAT_HISTORY_DB_PATH = os.getenv("CHAT_HISTORY_DB_PATH", "./chat_history.db")
+
     # Embedding settings
     EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-    
+
     # LLM settings
     LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
     LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.0"))
     LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
-    
+
     # PDF processing settings
     CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
     CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
-    
+
+    # PDF export settings
+    PDF_EXPORT_DIR = os.getenv("PDF_EXPORT_DIR", "./pdf_exports")
+
     # OpenAI API settings
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    
+
     @classmethod
     def get_all(cls) -> Dict[str, Any]:
         """
         Get all configuration settings as a dictionary.
-        
+
         Returns:
             Dictionary of all configuration settings
         """
