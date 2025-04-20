@@ -1,0 +1,132 @@
+.query-form {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.query-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.submit-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: block;
+  width: 100%;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #2980b9;
+}
+
+.response {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+}
+
+.response h3 {
+  margin-top: 0;
+  text-align: left;
+  color: #3498db;
+}
+
+.retrieved-documents {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.retrieved-documents h4 {
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.retrieved-documents ul {
+  padding-left: 20px;
+}
+
+.retrieved-documents li {
+  margin-bottom: 8px;
+}
+
+.history-section {
+  margin-top: 40px;
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.history-list {
+  margin-bottom: 15px;
+}
+
+.history-item {
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+}
+
+.history-item h4 {
+  margin-top: 0;
+  color: #3498db;
+}
+
+.history-query {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.history-answer {
+  margin-bottom: 10px;
+}
+
+.history-documents {
+  font-size: 14px;
+  color: #666;
+}
+
+.history-document {
+  margin-bottom: 5px;
+  padding-left: 10px;
+  border-left: 3px solid #ddd;
+}
+
+.no-history {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+}
+
+.clear-history {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.clear-history:hover {
+  background-color: #c0392b;
+}
