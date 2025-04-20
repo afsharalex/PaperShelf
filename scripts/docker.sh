@@ -2,7 +2,7 @@
 # Script to help with Docker operations for PaperShelf
 
 # Set the directory to the script's directory
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # Function to display help
 show_help() {

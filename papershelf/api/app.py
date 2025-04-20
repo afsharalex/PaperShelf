@@ -136,7 +136,7 @@ async def upload_paper(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
 
     finally:
-        # Clean up temporary file
+        # Clean up the temporary file
         if os.path.exists(temp_path):
             os.remove(temp_path)
 

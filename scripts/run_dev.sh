@@ -2,7 +2,7 @@
 # Script to run the PaperShelf application in development mode
 
 # Set the directory to the script's directory
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # Check if poetry is installed
 if ! command -v poetry &> /dev/null; then

@@ -2,7 +2,7 @@
 # Script to run tests with coverage reporting
 
 # Set the directory to the script's directory
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # Check if poetry is installed
 if ! command -v poetry &> /dev/null; then
@@ -58,6 +58,7 @@ if [ $COVERAGE -eq 1 ]; then
     fi
 fi
 
+# shellcheck disable=SC2236
 if [ ! -z "$SPECIFIC_TEST" ]; then
     CMD="$CMD $SPECIFIC_TEST"
 fi
